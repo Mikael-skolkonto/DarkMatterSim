@@ -1,17 +1,19 @@
 package me.overfjord.programwindow.graphicsPanel;
 
 import me.overfjord.programwindow.physicsToolkit.Space;
+import mikera.vectorz.Vector2;
 import mikera.vectorz.Vector3;
 
 import javax.swing.*;
-import javax.swing.plaf.ComponentUI;
 import java.awt.*;
-import java.awt.font.GlyphVector;
 
 public class GraphicsPanel extends JPanel implements Runnable {
 
     //The space that is displayed through this GraphicsPanel
     private final Space space;
+
+    //Camera object will draw particles and keep track of orientation
+    private final Camera camera;
 
     //Used by other classes to pause the frame-refreshing
     public boolean running = true;
@@ -23,6 +25,7 @@ public class GraphicsPanel extends JPanel implements Runnable {
 
     public GraphicsPanel(Space space, int fpsCap) {
         this.space = space;
+        this.camera = new Camera();
         this.FPS_CAP = 1000 / fpsCap;
         this.g2d = (Graphics2D) this.getGraphics();
 
@@ -35,15 +38,7 @@ public class GraphicsPanel extends JPanel implements Runnable {
         g2d.setBackground(SystemColor.BLACK);
         g2d.clearRect(0,0,getWidth(),getHeight());
 
-        g2d.setColor(SystemColor.BLUE);
-        drawPoints();
-    }
-
-
-    private void drawPoints() {
-        for (Vector3 v : space.pointMassCoordinates) {
-            g2d.fillOval((int)v.x,(int)v.y,90,90);
-        }
+        camera.drawPoints(space, g2d);
     }
 
     @Override
