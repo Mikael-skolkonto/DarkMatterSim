@@ -25,7 +25,7 @@ public class GraphicsPanel extends JPanel implements Runnable {
 
     public GraphicsPanel(Space space, int fpsCap) {
         this.space = space;
-        this.camera = new Camera();
+        this.camera = new Camera(getWidth(), getHeight());
         this.FPS_CAP = 1000 / fpsCap;
         this.g2d = (Graphics2D) this.getGraphics();
 

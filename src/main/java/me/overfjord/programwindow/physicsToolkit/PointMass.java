@@ -7,6 +7,7 @@ public enum PointMass {
     DARK_MATTER(-1.782687919810*Math.pow(10,-29), new Color(39, 74, 77)),
     MATTER(1.6726219*Math.pow(10,-27), new Color(213, 64, 64));
 
+    public static final double particleDiameter = 40.0;
     public final double mass;
     public final Color color;
     PointMass(double m, Color color) {

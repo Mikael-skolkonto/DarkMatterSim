@@ -7,6 +7,7 @@ import mikera.matrixx.Matrixx;
 import mikera.vectorz.Vector3;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 //TODO: Make the angles and position user-changeable
 //TODO: add "static-state" for the camera to follow a particle
@@ -18,28 +19,62 @@ public class Camera {
     /**the angle between the normal vector and the yz-plane
      */
     private double alpha = 0.0;
+
     /**the angle between the normal vector and the xz-plane
      */
     private double beta = 0.0;
+
     /**the rotation matrix
      */
     private Matrix33 rotation = Matrix33.createIdentityMatrix();
+
     /**the position of the camera
      */
     private Vector3 pos = new Vector3();
 
-    public Camera() {
+    /**The aspect ratio of the {@code GraphicsPanel} is measured as {@code Width/Height}
+     */
+    private double aspectRatio;
 
+    /**Field of view of the camera in radians.
+     */
+    private double FOV;
+
+    /**For technical reasons it is more optimal to save {@code cot(FOV/2)} per-instance
+     */
+    private double cotHalfFOV;
+
+    private int screenWidth;
+
+    public Camera(int ScreenWidth, int ScreenHeight) {
+        this(ScreenWidth, ScreenHeight, Math.PI * 0.5);
+    }
+
+    public Camera(int ScreenWidth, int ScreenHeight, double fieldOfView) {
+        this.aspectRatio = (double)ScreenWidth / (double)ScreenHeight;
+        this.FOV = fieldOfView;
+        cotHalfFOV = 1.0 / Math.tan(FOV * 0.5);
     }
 
     public Matrix33 getRotationMatrix() {
         return rotation;
     }
 
+    /**Set the ratio of height to width (height/width),
+     * <p>Should be used whenever the {@code GraphicsPanel} changes size.</p>
+     * @param ratio the new ratio of this camera space's height and width
+     */
+    public void setAspectRatio(double ratio) {
+        this.aspectRatio = ratio;
+    }
+
     public void drawPoints(Space space, Graphics2D g2d) {
         //int[n][3] = project(int[m][]);
         //drawToScreen(int[n][3] n points with x,y,diameter, PointMass[n] DARK-/MATTER);
-
+        for (PointMass p:
+             PointMass.values()) {
+            p.ordinal()
+        }
         //project(space)
         /*for (int i = 0, ceiling = space.universeActors.size(); i < ceiling; i++) {
             g2d.setColor(space.universeActors.get(i).color);
@@ -51,10 +86,19 @@ public class Camera {
 
     /**Project points in space onto screen.
      * @param space Points and properties
-     * @return List of vectors with elements: x, y and diameter
+     * @return List of vectors with elements: x, y, diameter and ordinal of {@code PointMass} type.
      */
     private int[][] project(Space space) {
+        Vector3[] rotatedPos = new Vector3[space.pointMassCoordinates.size()];
+        for (int i = 0; i < rotatedPos.length; i++) {
+            rotatedPos[i] = rotation.transform(space.pointMassCoordinates.get(i));
+        }
 
+        //TODO Add the rest of the logic from the desmos graph
+        //TODO Test the format of the generated integer matrix
+        //Arbitrarily long list of draw commands [x,y,diameter,color]
+        ArrayList<int[]> projected = new ArrayList<>();
+        return projected.toArray(new int[][]{});
     }
 
     /**Rotate the camera and update the matrix
