@@ -32,40 +32,43 @@ public class Camera {
      */
     private Vector3 pos = new Vector3();
 
-    /**The aspect ratio of the {@code GraphicsPanel} is measured as {@code Width/Height}
-     */
-    private double aspectRatio;
-
     /**Field of view of the camera in radians.
      */
     private double FOV;
+    private double panelWidth;
+    private double panelHeight;
+    private double dotsPerUnit;
 
-    /**For technical reasons it is more optimal to save {@code cot(FOV/2)} per-instance
-     */
-    private double cotHalfFOV;
-
-    private int screenWidth;
-
-    public Camera(int ScreenWidth, int ScreenHeight) {
-        this(ScreenWidth, ScreenHeight, Math.PI * 0.5);
+    public Camera(int panelWidth, int panelHeight) {
+        this(panelWidth, panelHeight, Math.PI * 0.5);
     }
 
-    public Camera(int ScreenWidth, int ScreenHeight, double fieldOfView) {
-        this.aspectRatio = (double)ScreenWidth / (double)ScreenHeight;
+    public Camera(int panelWidth, int panelHeight, double fieldOfView) {
+        this.panelWidth = panelWidth;
+        this.panelHeight = panelHeight;
         this.FOV = fieldOfView;
-        cotHalfFOV = 1.0 / Math.tan(FOV * 0.5);
+        this.dotsPerUnit = 0.5 * panelWidth / Math.tan(0.5 * FOV);     //Vidden på virtuella skärmen är 2*tan(FOV/2)
+
     }
 
     public Matrix33 getRotationMatrix() {
         return rotation;
     }
 
-    /**Set the ratio of height to width (height/width),
-     * <p>Should be used whenever the {@code GraphicsPanel} changes size.</p>
-     * @param ratio the new ratio of this camera space's height and width
+    /**Should be called whenever the {@code GraphicsPanel} changes width or height.
+     * @param width the new width of the GraphicsPanel
+     * @param height the new height of the GraphicsPanel
      */
-    public void setAspectRatio(double ratio) {
-        this.aspectRatio = ratio;
+    public void setPanelSize(int width, int height) {
+        this.panelWidth = width;
+        this.panelHeight = height;
+    }
+
+    /**Sets the horizontal field of view to the given angle.
+     * @param angle angle between {@literal 0} and {@code Math.PI}
+     */
+    public void setFieldOfView(double angle) {
+
     }
 
     public void drawPoints(Space space, Graphics2D g2d) {
@@ -91,13 +94,23 @@ public class Camera {
     private int[][] project(Space space) {
         Vector3[] rotatedPos = new Vector3[space.pointMassCoordinates.size()];
         for (int i = 0; i < rotatedPos.length; i++) {
-            rotatedPos[i] = rotation.transform(space.pointMassCoordinates.get(i));
+            rotatedPos[i] = (Vector3) rotation.transform(space.pointMassCoordinates.get(i).addMultipleCopy(this.pos,-1.0));
+            //should create a new transformed vector
+            //transforms the position-vector of the point by subtracting the camera-position and performing a matrix multiplication
+            
         }
 
         //TODO Add the rest of the logic from the desmos graph
         //TODO Test the format of the generated integer matrix
         //Arbitrarily long list of draw commands [x,y,diameter,color]
         ArrayList<int[]> projected = new ArrayList<>();
+
+        for (int i = 0; i < rotatedPos.length; i++) {
+            if (rotatedPos[i].z > 0.0) {
+
+            }
+        }
+
         return projected.toArray(new int[][]{});
     }
 
