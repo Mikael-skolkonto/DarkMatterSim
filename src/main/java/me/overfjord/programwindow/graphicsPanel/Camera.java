@@ -66,25 +66,28 @@ public class Camera {
 
     /**Sets the horizontal field of view to the given angle.
      * @param angle angle between {@literal 0} and {@code Math.PI}
+     * @throws IllegalArgumentException if {@code angle <= 0 || angle >= Math.PI} returns true
      */
     public void setFieldOfView(double angle) {
-
+        if (angle <= 0.0 || angle >= Math.PI) {
+            throw new IllegalArgumentException("The angle %f is out of the accepted range of FOVs!".formatted(angle));
+        }
+        this.FOV = angle;
+        this.dotsPerUnit = 0.5 * panelWidth / Math.tan(0.5 * FOV);  //virtual camera width is 2 * tan(FOV/2)
     }
 
     public void drawPoints(Space space, Graphics2D g2d) {
-        //int[n][3] = project(int[m][]);
-        //drawToScreen(int[n][3] n points with x,y,diameter, PointMass[n] DARK-/MATTER);
-        for (PointMass p:
-             PointMass.values()) {
-            p.ordinal()
-        }
-        //project(space)
-        /*for (int i = 0, ceiling = space.universeActors.size(); i < ceiling; i++) {
-            g2d.setColor(space.universeActors.get(i).color);
-            //draws a circle circumscribed by the square "(x1,y1),(x1+width,y1+height))
-            g2d.fillOval((int)space.pointMassCoordinates.get(i).x,(int)space.pointMassCoordinates.get(i).y,10,10);
+        int[][] drawCommands = project(space);
+        for (int[] drawCommand : drawCommands) {
 
-        }*/
+            //Kanske de magiska konstanterna "0" och "1" ska bytas ut mot "X.ordinal()" men då anropas samma metod
+            //en massa gånger och ordinalen på "DARK_MATTER" och "MATTER" lär nog aldrig byta plats ändå.
+            switch (drawCommand[3]) {
+                case 0 -> g2d.setColor(PointMass.DARK_MATTER.color);
+                case 1 -> g2d.setColor(PointMass.MATTER.color);
+            }
+            g2d.fillOval(drawCommand[0], drawCommand[1], drawCommand[2], drawCommand[2]);  //x,y,diameter,diameter
+        }
     }
 
     /**Project points in space onto screen.
@@ -97,18 +100,36 @@ public class Camera {
             rotatedPos[i] = (Vector3) rotation.transform(space.pointMassCoordinates.get(i).addMultipleCopy(this.pos,-1.0));
             //should create a new transformed vector
             //transforms the position-vector of the point by subtracting the camera-position and performing a matrix multiplication
-            
         }
 
-        //TODO Add the rest of the logic from the desmos graph
+        //TODO överväg om "panelWidth" och "panelHeight" ska sparas som int istället
         //TODO Test the format of the generated integer matrix
         //Arbitrarily long list of draw commands [x,y,diameter,color]
         ArrayList<int[]> projected = new ArrayList<>();
 
         for (int i = 0; i < rotatedPos.length; i++) {
-            if (rotatedPos[i].z > 0.0) {
-
+            if (rotatedPos[i].z < 0.0 || rotatedPos[i].z > PointMass.particleDiameter) {
+                continue;
             }
+            //Here the point has to be in front of the camera and the diameter has to be > 1 pixel
+
+            double reciprocalZ = 1 / rotatedPos[i].z;
+
+            int x = (int)(reciprocalZ * rotatedPos[i].x * dotsPerUnit) + ((int)panelWidth >> 1);
+            if (x < 0 || x > (int)panelWidth) {
+                continue;
+            }
+            int y = -(int)(reciprocalZ * rotatedPos[i].y * dotsPerUnit) + ((int)panelHeight >> 1);
+            if (y < 0 || y > (int)panelHeight) {
+                continue;
+            }
+            //Here the point has to be within the panel and will therefore be drawn
+
+            int diameter = (int)(reciprocalZ * PointMass.particleDiameter);
+
+            int[] drawCommand = new int[] {x - (diameter >> 1),y - (diameter >> 1),diameter,space.universeActors.get(i).ordinal()};
+            projected.add(drawCommand);
+            //adds new draw command to arraylist
         }
 
         return projected.toArray(new int[][]{});
