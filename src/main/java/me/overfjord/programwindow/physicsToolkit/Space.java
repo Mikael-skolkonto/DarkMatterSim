@@ -11,7 +11,7 @@ public class Space {
     public ArrayList<Vector3> velocities = new ArrayList<>();
 
     public Space() {
-        this.add(PointMass.DARK_MATTER, new Vector3(120,50,1),new Vector3(5,-1,0));
+        this.add(PointMass.DARK_MATTER, new Vector3(0,0,1),new Vector3(5,-1,0));
     }
 
     public Space add(PointMass p) {

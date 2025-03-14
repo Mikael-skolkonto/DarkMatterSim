@@ -1,11 +1,11 @@
 package me.overfjord.programwindow.graphicsPanel;
 
 import me.overfjord.programwindow.physicsToolkit.Space;
-import mikera.vectorz.Vector2;
 import mikera.vectorz.Vector3;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 
 public class GraphicsPanel extends JPanel implements Runnable {
 
@@ -23,9 +23,10 @@ public class GraphicsPanel extends JPanel implements Runnable {
 
     private Graphics2D g2d;
 
-    public GraphicsPanel(Space space, int fpsCap) {
+    public GraphicsPanel(Space space, Dimension size, int fpsCap) {
         this.space = space;
-        this.camera = new Camera(getWidth(), getHeight());
+        this.setSize(size);
+        this.camera = new Camera(this);
         this.FPS_CAP = 1000 / fpsCap;
         this.g2d = (Graphics2D) this.getGraphics();
 
@@ -51,5 +52,22 @@ public class GraphicsPanel extends JPanel implements Runnable {
         } catch (InterruptedException interruptException) {
             interruptException.printStackTrace();
         }
+    }
+
+    public void move(int direction) {
+        Vector3 directionVec;
+        switch (direction) {
+            case 0 -> directionVec = new Vector3(0.0, 0.0, 1.0);
+            case 1 -> directionVec = new Vector3(-1.0, 0, 0);
+            case 2 -> directionVec = new Vector3(0.0, 0.0, -1.0);
+            case 3 -> directionVec = new Vector3(1.0, 0, 0);
+            default -> directionVec = new Vector3(0.0,0.0,0.0);
+        }
+        this.camera.getRotationMatrix().transformInPlace(directionVec);
+        this.camera.move();
+    }
+
+    public void moveMouse(MouseEvent e) {
+
     }
 }

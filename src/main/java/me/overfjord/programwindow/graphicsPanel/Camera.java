@@ -39,13 +39,13 @@ public class Camera {
     private double panelHeight;
     private double dotsPerUnit;
 
-    public Camera(int panelWidth, int panelHeight) {
-        this(panelWidth, panelHeight, Math.PI * 0.5);
+    public Camera(GraphicsPanel gp) {
+        this(gp,Math.PI * 0.5);
     }
 
-    public Camera(int panelWidth, int panelHeight, double fieldOfView) {
-        this.panelWidth = panelWidth;
-        this.panelHeight = panelHeight;
+    public Camera(GraphicsPanel gp, double fieldOfView) {
+        this.panelWidth = gp.getWidth();
+        this.panelHeight = gp.getHeight();
         this.FOV = fieldOfView;
         this.dotsPerUnit = 0.5 * panelWidth / Math.tan(0.5 * FOV);     //Vidden på virtuella skärmen är 2*tan(FOV/2)
 
@@ -76,6 +76,13 @@ public class Camera {
         this.dotsPerUnit = 0.5 * panelWidth / Math.tan(0.5 * FOV);  //virtual camera width is 2 * tan(FOV/2)
     }
 
+    /**Moves the camera the distance of vector v
+     * @param v the movement vector
+     */
+    public void move(Vector3 v) {
+        this.pos.sub(v);
+    }
+
     public void drawPoints(Space space, Graphics2D g2d) {
         int[][] drawCommands = project(space);
         for (int[] drawCommand : drawCommands) {
@@ -97,7 +104,7 @@ public class Camera {
     private int[][] project(Space space) {
         Vector3[] rotatedPos = new Vector3[space.pointMassCoordinates.size()];
         for (int i = 0; i < rotatedPos.length; i++) {
-            rotatedPos[i] = (Vector3) rotation.transform(space.pointMassCoordinates.get(i).addMultipleCopy(this.pos,-1.0));
+            rotatedPos[i] = rotation.transform(space.pointMassCoordinates.get(i).addCopy(this.pos.negateCopy()));
             //should create a new transformed vector
             //transforms the position-vector of the point by subtracting the camera-position and performing a matrix multiplication
         }
