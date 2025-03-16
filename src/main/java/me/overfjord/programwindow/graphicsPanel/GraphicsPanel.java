@@ -28,7 +28,7 @@ public class GraphicsPanel extends JPanel implements Runnable {
         this.setSize(size);
         this.camera = new Camera(this);
         this.FPS_CAP = 1000 / fpsCap;
-        this.g2d = (Graphics2D) this.getGraphics();
+        this.g2d = (Graphics2D)this.getGraphics();
 
         setOpaque(false);
     }
@@ -54,20 +54,36 @@ public class GraphicsPanel extends JPanel implements Runnable {
         }
     }
 
-    public void move(int direction) {
+    public void move(byte direction) {
         Vector3 directionVec;
+        //direction = 0 -> stop
+        //direction = 1 -> W key
+        //direction = 2 -> A key
+        //direction = 3 -> S key
+        //direction = 4 -> D key
         switch (direction) {
-            case 0 -> directionVec = new Vector3(0.0, 0.0, 1.0);
-            case 1 -> directionVec = new Vector3(-1.0, 0, 0);
-            case 2 -> directionVec = new Vector3(0.0, 0.0, -1.0);
-            case 3 -> directionVec = new Vector3(1.0, 0, 0);
-            default -> directionVec = new Vector3(0.0,0.0,0.0);
+            case 0 -> directionVec = null;
+            case 1 -> directionVec = new Vector3(0.0, 0.0, 1.0);
+            case 2 -> directionVec = new Vector3(-1.0, 0, 0);
+            case 3 -> directionVec = new Vector3(0.0, 0.0, -1.0);
+            case 4 -> directionVec = new Vector3(1.0, 0, 0);
+            default -> directionVec = new Vector3();
         }
-        this.camera.getRotationMatrix().transformInPlace(directionVec);
-        this.camera.move();
+        if (directionVec == null) {
+            this.camera.stopMoving();
+            return;
+        }
+
+        directionVec.multiply(0.05);    //speed is 5%
+        this.camera.getRotationMatrix().inverse().transformInPlace(directionVec);
+
+        this.camera.move(directionVec);
     }
 
-    public void moveMouse(MouseEvent e) {
-
+    public void moveMouse(int x, int y) {
+        //sensitivity constant is 2PI radians / 2560 pixels (1 turn across my entire screen)
+        double theta = -x * 0.00245436926061702596754894014319;
+        double phi = -y * 0.00245436926061702596754894014319;
+        camera.rotate(theta,phi);
     }
 }

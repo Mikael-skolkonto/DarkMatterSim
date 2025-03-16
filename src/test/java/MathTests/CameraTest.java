@@ -7,6 +7,8 @@ import mikera.matrixx.Matrix33;
 import mikera.vectorz.Vector3;
 import org.junit.jupiter.api.DisplayName;
 
+import java.awt.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CameraTest {
@@ -14,7 +16,7 @@ class CameraTest {
     @org.junit.jupiter.api.Test
     @DisplayName("Rotate a matrix")
     void rotate() {
-        Camera c = new Camera(new GraphicsPanel(new Space(),1),1);
+        Camera c = new Camera(new GraphicsPanel(new Space(),new Dimension(1,1),1),1);
        // c.rotate(4.0,0.21);
         c.rotate(0.0,Math.PI*0.5);
         Matrix33 cRotation = c.getRotationMatrix();
