@@ -12,7 +12,18 @@ import java.awt.event.*;
  */
 public class MainProgramWindow extends JFrame implements Runnable {
 
-    private GraphicsPanel gp;
+    private final GraphicsPanel gp;
+
+    /**Used to do actions like move the cursor to the center of the screen
+     */
+    private final Robot sudo;
+    {
+        try {
+            sudo = new Robot();
+        } catch (AWTException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public void run() {
@@ -43,13 +54,29 @@ public class MainProgramWindow extends JFrame implements Runnable {
 
         addMouseMotionListener(new MouseInputHandler());
         addKeyListener(new KeyboardInputHandler());
+        addWindowStateListener(new WindowStateHandler());
 
         graphicsThread.start();     //TYDLIGEN VÄLDIGT VIKTIGT ATT THREADEN STARTAS I SLUTET AV KONSTRUKTÖREN! UPPTÄCKT GENOM TRIAL AND ERROR
+        //JAG JÄMFÖRDE MED JPong OCH ENDA SKILLNADEN VAR PLACERINGEN AV DETTA METODANROPET
+    }
+
+    private void switchFullscreen() {
+        if (getExtendedState() == MAXIMIZED_BOTH) {
+            setExtendedState(NORMAL);
+            setUndecorated(false);
+        } else {
+            setExtendedState(MAXIMIZED_BOTH);
+            setUndecorated(true);
+        }
     }
 
     class KeyboardInputHandler extends KeyAdapter {
 
         public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_F11) {
+                switchFullscreen();
+            }
+
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_W -> gp.move((byte)1);   //forward
                 case KeyEvent.VK_A -> gp.move((byte)2);   //left
@@ -68,7 +95,7 @@ public class MainProgramWindow extends JFrame implements Runnable {
 
             //movement
             switch (e.getKeyCode()) {
-                case KeyEvent.VK_W, KeyEvent.VK_A, KeyEvent.VK_S, KeyEvent.VK_D -> gp.move((byte)0);
+                case KeyEvent.VK_W, KeyEvent.VK_A, KeyEvent.VK_S, KeyEvent.VK_D -> gp.move(0);
             }
         }
     }
@@ -76,13 +103,21 @@ public class MainProgramWindow extends JFrame implements Runnable {
     //handles "looking around"
     class MouseInputHandler extends MouseMotionAdapter {
 
-        private int lastMouseLocationX = gp.getLocationOnScreen().x + (gp.getWidth() >> 1);     //center of GraphicsPanel
-        private int lastMouseLocationY = gp.getLocationOnScreen().y + (gp.getHeight() >> 1);    //center of GraphicsPanel
+        //private int lastMouseLocationX = gp.getLocationOnScreen().x + (gp.getWidth() >> 1);     //center of GraphicsPanel
+        //private int lastMouseLocationY = gp.getLocationOnScreen().y + (gp.getHeight() >> 1);    //center of GraphicsPanel
 
         public void mouseMoved(MouseEvent e) {
-            gp.moveMouse(e.getX() - lastMouseLocationX,e.getY() - lastMouseLocationY);
-            lastMouseLocationX = e.getX();
-            lastMouseLocationY = e.getY();
+            gp.moveMouse(e.getX() - (getWidth() >> 1),e.getY() - (getHeight() >> 1));
+            //lastMouseLocationX = e.getX();
+            //lastMouseLocationY = e.getY();
+            sudo.mouseMove(getX() + (getWidth() >> 1),getY() + (getHeight() >> 1));
+        }
+    }
+
+    class WindowStateHandler extends WindowAdapter {
+        @Override
+        public void windowStateChanged(WindowEvent e) {
+            gp.setPanelSize(e.getWindow().getSize());
         }
     }
 }

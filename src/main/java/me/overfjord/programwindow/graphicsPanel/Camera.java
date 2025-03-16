@@ -111,11 +111,11 @@ public class Camera {
 
         //Keeping the angle between plus-minus 90 degrees
         if (Math.abs(beta) > Math.PI*0.5) {
-            beta = Math.signum(beta)*Math.PI;
+            beta = Math.signum(beta)*Math.PI*0.5;
         }
 
-        this.rotation = Matrixx.createYAxisRotationMatrix(alpha)
-                .innerProduct(Matrixx.createXAxisRotationMatrix(beta));
+        this.rotation = Matrixx.createXAxisRotationMatrix(beta)
+                .innerProduct(Matrixx.createYAxisRotationMatrix(alpha));
     }
 
     public void drawPoints(Space space, Graphics2D g2d) {
@@ -149,7 +149,6 @@ public class Camera {
         }
 
         //TODO överväg om "panelWidth" och "panelHeight" ska sparas som int istället
-        //TODO Test the format of the generated integer matrix
         //Arbitrarily long list of draw commands [x,y,diameter,color]
         ArrayList<int[]> projected = new ArrayList<>();
 

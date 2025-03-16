@@ -5,7 +5,6 @@ import mikera.vectorz.Vector3;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 
 public class GraphicsPanel extends JPanel implements Runnable {
 
@@ -25,12 +24,17 @@ public class GraphicsPanel extends JPanel implements Runnable {
 
     public GraphicsPanel(Space space, Dimension size, int fpsCap) {
         this.space = space;
-        this.setSize(size);
+        this.setPanelSize(size);
         this.camera = new Camera(this);
         this.FPS_CAP = 1000 / fpsCap;
-        this.g2d = (Graphics2D)this.getGraphics();
+        this.g2d = (Graphics2D) getGraphics();
 
         setOpaque(false);
+
+        setCursor( getToolkit().createCustomCursor(
+                new java.awt.image.BufferedImage(1,1,java.awt.image.BufferedImage.TYPE_INT_ARGB),
+                new Point(),
+                null));
     }
 
     public void paint(Graphics g) {
@@ -42,19 +46,29 @@ public class GraphicsPanel extends JPanel implements Runnable {
         camera.drawPoints(space, g2d);
     }
 
+    /**Updates the camera with the new size of the frame, if the field isn't null
+     * @param d the dimension specifying the new size
+     */
+    public void setPanelSize(Dimension d) {
+        if (camera != null) {
+            camera.setPanelSize(d.width,d.height);
+        }
+    }
+
     @Override
     public void run() {
         try {
             while (running) {
                 this.paint(this.getGraphics());
                 Thread.sleep(FPS_CAP);
+                //sudo.mouseMove(getX()+(getWidth()>>1),getY()+(getHeight()>>1));
             }
         } catch (InterruptedException interruptException) {
             interruptException.printStackTrace();
         }
     }
 
-    public void move(byte direction) {
+    public void move(int direction) {
         Vector3 directionVec;
         //direction = 0 -> stop
         //direction = 1 -> W key
@@ -74,12 +88,16 @@ public class GraphicsPanel extends JPanel implements Runnable {
             return;
         }
 
-        directionVec.multiply(0.05);    //speed is 5%
+        directionVec.multiply(0.005);    //speed is 0.5%
         this.camera.getRotationMatrix().inverse().transformInPlace(directionVec);
 
         this.camera.move(directionVec);
     }
 
+    /**Call method when mouse is moved, this will make the camera rotate
+     * @param x The amount of pixels the mouse is moved to the right
+     * @param y The amount of pixels the mouse is moved down
+     */
     public void moveMouse(int x, int y) {
         //sensitivity constant is 2PI radians / 2560 pixels (1 turn across my entire screen)
         double theta = -x * 0.00245436926061702596754894014319;

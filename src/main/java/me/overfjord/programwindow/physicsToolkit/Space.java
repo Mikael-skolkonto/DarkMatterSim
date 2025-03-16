@@ -11,11 +11,11 @@ public class Space {
     public ArrayList<Vector3> velocities = new ArrayList<>();
 
     public Space() {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 500; i++) {
             if (i % 2 == 0) {
-                this.add(PointMass.DARK_MATTER, new Vector3(Math.random(),Math.random(),1+Math.random()),new Vector3());
+                this.add(PointMass.DARK_MATTER, new Vector3(5*Math.random(),5*Math.random(),5*Math.random()),new Vector3());
             } else {
-                this.add(PointMass.MATTER, new Vector3(Math.random(),Math.random(),1+Math.random()),new Vector3());
+                this.add(PointMass.MATTER, new Vector3(5*Math.random(),5*Math.random(),5*Math.random()),new Vector3());
             }
         }
     }
