@@ -1,6 +1,7 @@
 package me.overfjord.programwindow;
 
 import me.overfjord.programwindow.graphicsPanel.GraphicsPanel;
+import me.overfjord.programwindow.physicsToolkit.PhysicsStepper;
 import me.overfjord.programwindow.physicsToolkit.Space;
 
 import javax.swing.*;
@@ -41,14 +42,19 @@ public class MainProgramWindow extends JFrame implements Runnable {
         int width = (int) (height * 1.61803398875);
         setSize(width,height);
 
-        setLocationRelativeTo(null);
-        getContentPane().setBackground(SystemColor.BLACK);
+        //Creating physicsThread
+        PhysicsStepper ps = new PhysicsStepper((byte)0,(byte)2);
+        Thread physicsThread = new Thread(ps,"PhysicsStepperThread");
+        Space space = new Space(ps);
+        ps.setSpace(space);
 
         //Add panel to display simulation
-        this.gp = new GraphicsPanel(new Space(),getSize(),60);
+        this.gp = new GraphicsPanel(space,getSize(),60);
         getContentPane().add(gp);
         Thread graphicsThread = new Thread(gp, "GraphicsThread");
 
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(SystemColor.BLACK);
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
@@ -58,15 +64,16 @@ public class MainProgramWindow extends JFrame implements Runnable {
 
         graphicsThread.start();     //TYDLIGEN VÄLDIGT VIKTIGT ATT THREADEN STARTAS I SLUTET AV KONSTRUKTÖREN! UPPTÄCKT GENOM TRIAL AND ERROR
         //JAG JÄMFÖRDE MED JPong OCH ENDA SKILLNADEN VAR PLACERINGEN AV DETTA METODANROPET
+        physicsThread.start();
     }
 
     private void switchFullscreen() {
         if (getExtendedState() == MAXIMIZED_BOTH) {
             setExtendedState(NORMAL);
-            setUndecorated(false);
+            //setUndecorated(false);
         } else {
             setExtendedState(MAXIMIZED_BOTH);
-            setUndecorated(true);
+            //setUndecorated(true);     Funkar ej för tillfället
         }
     }
 

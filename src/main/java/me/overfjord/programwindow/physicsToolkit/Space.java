@@ -7,15 +7,23 @@ public class Space {
 
     public ArrayList<PointMass> universeActors = new ArrayList<>();
     public ArrayList<Vector3> pointMassCoordinates = new ArrayList<>();
-
     public ArrayList<Vector3> velocities = new ArrayList<>();
 
+    public PhysicsStepper physics;
+
     public Space() {
-        for (int i = 0; i < 500; i++) {
-            if (i % 2 == 0) {
-                this.add(PointMass.DARK_MATTER, new Vector3(5*Math.random(),5*Math.random(),5*Math.random()),new Vector3());
+        this(new PhysicsStepper());
+    }
+
+    public Space(PhysicsStepper ps) {
+        this.physics = ps;
+
+        //1 på 6 partiklar är vanlig materia, efterom 4% av univerum är materia och 20% mörk materia
+        for (int i = 0; i < 60; i++) {
+            if (i % 6 == 0) {
+                this.add(PointMass.MATTER, new Vector3(0.1*Math.random(),0.1*Math.random(),0.1*Math.random()),new Vector3());
             } else {
-                this.add(PointMass.MATTER, new Vector3(5*Math.random(),5*Math.random(),5*Math.random()),new Vector3());
+                this.add(PointMass.DARK_MATTER, new Vector3(0.1*Math.random(),0.1*Math.random(),0.1*Math.random()),new Vector3());
             }
         }
     }
