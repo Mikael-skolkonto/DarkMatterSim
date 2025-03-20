@@ -15,6 +15,11 @@ public class MainProgramWindow extends JFrame implements Runnable {
 
     private final GraphicsPanel gp;
 
+    /**På skoldatorn stötte jag på problemet att punkterna kunde försvinna innan jag hittade dem,
+     * med detta kan användaren välja att starta simuleringen med 'R'
+     */
+    private final Runnable startSim;
+
     /**Used to do actions like move the cursor to the center of the screen
      */
     private final Robot sudo;
@@ -43,13 +48,14 @@ public class MainProgramWindow extends JFrame implements Runnable {
         setSize(width,height);
 
         //Creating physicsThread
-        PhysicsStepper ps = new PhysicsStepper((byte)0,(byte)2);
+        PhysicsStepper ps = new PhysicsStepper(PhysicsStepper.GRAVITY);
         Thread physicsThread = new Thread(ps,"PhysicsStepperThread");
         Space space = new Space(ps);
         ps.setSpace(space);
+        this.startSim = physicsThread::start;
 
         //Add panel to display simulation
-        this.gp = new GraphicsPanel(space,getSize(),60);
+        this.gp = new GraphicsPanel(space,getSize(),165);
         getContentPane().add(gp);
         Thread graphicsThread = new Thread(gp, "GraphicsThread");
 
@@ -61,10 +67,11 @@ public class MainProgramWindow extends JFrame implements Runnable {
         addMouseMotionListener(new MouseInputHandler());
         addKeyListener(new KeyboardInputHandler());
         addWindowStateListener(new WindowStateHandler());
+        //FileReader    (lägg till Let It Happen Musik)
 
         graphicsThread.start();     //TYDLIGEN VÄLDIGT VIKTIGT ATT THREADEN STARTAS I SLUTET AV KONSTRUKTÖREN! UPPTÄCKT GENOM TRIAL AND ERROR
         //JAG JÄMFÖRDE MED JPong OCH ENDA SKILLNADEN VAR PLACERINGEN AV DETTA METODANROPET
-        physicsThread.start();
+
     }
 
     private void switchFullscreen() {
@@ -80,10 +87,20 @@ public class MainProgramWindow extends JFrame implements Runnable {
     class KeyboardInputHandler extends KeyAdapter {
 
         public void keyPressed(KeyEvent e) {
+
+            //fullscreen-key
             if (e.getKeyCode() == KeyEvent.VK_F11) {
                 switchFullscreen();
+                return;
             }
 
+            //start the simulation if it isn't already running
+            if (e.getKeyCode() == KeyEvent.VK_R && !gp.space.physics.simulating) {
+                startSim.run();
+                return;
+            }
+
+            //movement-keys
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_W -> gp.move((byte)1);   //forward
                 case KeyEvent.VK_A -> gp.move((byte)2);   //left
@@ -100,7 +117,7 @@ public class MainProgramWindow extends JFrame implements Runnable {
                 System.exit(0);
             }
 
-            //movement
+            //stopping movement when a movement-key has been unpressed
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_W, KeyEvent.VK_A, KeyEvent.VK_S, KeyEvent.VK_D -> gp.move(0);
             }
@@ -110,14 +127,9 @@ public class MainProgramWindow extends JFrame implements Runnable {
     //handles "looking around"
     class MouseInputHandler extends MouseMotionAdapter {
 
-        //private int lastMouseLocationX = gp.getLocationOnScreen().x + (gp.getWidth() >> 1);     //center of GraphicsPanel
-        //private int lastMouseLocationY = gp.getLocationOnScreen().y + (gp.getHeight() >> 1);    //center of GraphicsPanel
-
         public void mouseMoved(MouseEvent e) {
-            gp.moveMouse(e.getX() - (getWidth() >> 1),e.getY() - (getHeight() >> 1));
-            //lastMouseLocationX = e.getX();
-            //lastMouseLocationY = e.getY();
-            sudo.mouseMove(getX() + (getWidth() >> 1),getY() + (getHeight() >> 1));
+            gp.moveMouse(e.getX() - (getWidth() >> 1),e.getY() - (getHeight() >> 1));   //calls .moveMouse() with the distance from the origin as x & y
+            sudo.mouseMove(getX() + (getWidth() >> 1),getY() + (getHeight() >> 1));     //repositions the mouse at the origin
         }
     }
 

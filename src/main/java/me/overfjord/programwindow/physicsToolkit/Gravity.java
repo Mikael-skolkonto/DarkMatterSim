@@ -4,17 +4,13 @@ import mikera.vectorz.Vector3;
 
 public class Gravity extends StepRule {
 
-    private static final double GRAVITATIONAL_CONSTANT = 1_000_000_000; //actual: 0.000000000066743
-
-    public Gravity() {
-
-    }
+    private static final double GRAVITATIONAL_CONSTANT = 0.000000000066743;
 
     @Override
     public Vector3[] step(Space space, long dt) {
         Vector3[] appliedVelocities = new Vector3[space.universeActors.size()];
 
-        //TODO: Implement gravity. Formulas: dv = dt * G(M/r^2) and F = G(M*m/r^2)
+        //TODO: Find what factors drop out when substituting units. Important formulas: dv = dt * G(M/r^2) and F = G(M*m/r^2)
         for (int i = 0; i < appliedVelocities.length; i++) {
             //initialize variable
             appliedVelocities[i] = new Vector3();

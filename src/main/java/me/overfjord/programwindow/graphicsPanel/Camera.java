@@ -114,6 +114,7 @@ public class Camera {
             beta = Math.signum(beta)*Math.PI*0.5;
         }
 
+        //Changes the rotation matrix to be the new angles
         this.rotation = Matrixx.createXAxisRotationMatrix(beta)
                 .innerProduct(Matrixx.createYAxisRotationMatrix(alpha));
     }
@@ -125,7 +126,7 @@ public class Camera {
 
         for (int[] drawCommand : drawCommands) {
 
-            //Kanske de magiska konstanterna "0" och "1" ska bytas ut mot "X.ordinal()" men det funkar ej inuti en switch
+            //Kanske de magiska konstanterna "0" och "1" ska bytas ut mot "PointMass.X.ordinal()" men det funkar ej inuti en switch
             //switchen är där för att det lätt ska gå att lägga till fler sorters "PointMass"
             switch (drawCommand[3]) {
                 case 0 -> g2d.setColor(PointMass.DARK_MATTER.color);

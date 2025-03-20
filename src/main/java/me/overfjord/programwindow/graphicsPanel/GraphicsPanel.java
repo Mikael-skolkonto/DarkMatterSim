@@ -3,13 +3,13 @@ package me.overfjord.programwindow.graphicsPanel;
 import me.overfjord.programwindow.physicsToolkit.Space;
 import mikera.vectorz.Vector3;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 import java.awt.*;
 
 public class GraphicsPanel extends JPanel implements Runnable {
 
     //The space that is displayed through this GraphicsPanel
-    private final Space space;
+    public final Space space;
 
     //Camera object will draw particles and keep track of orientation
     private final Camera camera;
@@ -61,7 +61,6 @@ public class GraphicsPanel extends JPanel implements Runnable {
             while (running) {
                 this.paint(this.getGraphics());
                 Thread.sleep(FPS_CAP);
-                //sudo.mouseMove(getX()+(getWidth()>>1),getY()+(getHeight()>>1));
             }
         } catch (InterruptedException interruptException) {
             interruptException.printStackTrace();

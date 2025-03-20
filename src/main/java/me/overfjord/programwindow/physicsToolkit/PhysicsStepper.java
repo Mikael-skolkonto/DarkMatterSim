@@ -6,9 +6,9 @@ import java.util.ArrayList;
 
 public class PhysicsStepper implements Runnable {
 
-    public static final byte GRAVITY = 1, ELECTROSTATIC = 2;
+    public static final byte GRAVITY = 0, ELECTROSTATIC = 1, DARK_ENERGY = 2;
 
-    public boolean simulating = true;
+    public boolean simulating = false;
 
     private Space space;
 
@@ -17,9 +17,9 @@ public class PhysicsStepper implements Runnable {
     public PhysicsStepper(byte... stepRules) {
         for (byte stepRule : stepRules) {
             switch (stepRule) {
-                case 0 -> this.stepRules.add(new Gravity());
-                /*case 1 -> this.stepRules.add(new Electrostatic(space));*/
-                case 2 -> this.stepRules.add(new DarkEnergyExpansion());
+                case GRAVITY -> this.stepRules.add(new Gravity());
+                /*case ELECTROSTATIC -> this.stepRules.add(new Electrostatic(space));*/
+                case DARK_ENERGY -> this.stepRules.add(new DarkEnergyExpansion());
                 default -> throw new IllegalArgumentException("Unexpected value: " + stepRule);
             }
         }
@@ -31,6 +31,7 @@ public class PhysicsStepper implements Runnable {
 
     @Override
     public void run() {
+        this.simulating = true;
         long timestep_ns = 5_000_000;   //5 ms
 
         //The continuous loop
@@ -43,7 +44,12 @@ public class PhysicsStepper implements Runnable {
                 //add velocities for each particle
                 Vector3[] addedVelocities = sr.step(space,timestep_ns);
                 for (int i = 0; i < addedVelocities.length; i++) {
-                    deltaVelocities[i] = addedVelocities[i];    //for now this is incompatible with having multiple stepRules
+                    //Add dv or assign initial value
+                    if (deltaVelocities[i] == null) {
+                        deltaVelocities[i] = (addedVelocities[i]);
+                    } else {
+                        deltaVelocities[i].add(addedVelocities[i]);    //for now this is incompatible with having multiple stepRules
+                    }
                 }
             }
 
