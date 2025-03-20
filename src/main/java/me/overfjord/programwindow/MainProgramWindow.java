@@ -4,9 +4,19 @@ import me.overfjord.programwindow.graphicsPanel.GraphicsPanel;
 import me.overfjord.programwindow.physicsToolkit.PhysicsStepper;
 import me.overfjord.programwindow.physicsToolkit.Space;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JFrame;
+import java.awt.AWTException;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Robot;
+import java.awt.SystemColor;
+import java.awt.Toolkit;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * This class is the program window and handles the inputs

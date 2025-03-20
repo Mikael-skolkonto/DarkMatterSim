@@ -3,10 +3,10 @@
     <output-path>$PROJECT_DIR$/out/artifacts/DarkMatterSim_jar</output-path>
     <root id="archive" name="DarkMatterSim.jar">
       <element id="module-output" name="DarkMatterSim" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/net/mikera/mathz/0.3.0/mathz-0.3.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/net/mikera/vectorz/0.48.0/vectorz-0.48.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/us/bpsm/edn-java/0.4.5/edn-java-0.4.5.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/net/mikera/randomz/0.3.0/randomz-0.3.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/us/bpsm/edn-java/0.4.5/edn-java-0.4.5.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/net/mikera/mathz/0.3.0/mathz-0.3.0.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

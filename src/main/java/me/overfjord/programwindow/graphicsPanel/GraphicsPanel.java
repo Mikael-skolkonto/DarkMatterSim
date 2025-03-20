@@ -4,7 +4,12 @@ import me.overfjord.programwindow.physicsToolkit.Space;
 import mikera.vectorz.Vector3;
 
 import javax.swing.JPanel;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.SystemColor;
 
 public class GraphicsPanel extends JPanel implements Runnable {
 
