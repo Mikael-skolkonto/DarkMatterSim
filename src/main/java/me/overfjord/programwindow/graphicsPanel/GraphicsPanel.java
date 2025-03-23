@@ -90,6 +90,16 @@ public class GraphicsPanel extends JPanel implements Runnable {
         }
     }
 
+    /**Interfaces with the camera that projects space onto the screen.
+     * Moving in a direction depending on the constant given.
+     * <pre><li>0 -> stop</li>
+     * <li>1 -> forward</li>
+     * <li>2 -> left</li>
+     * <li>3 -> backward</li>
+     * <li>4 -> right</li>
+     * </pre>
+     * @param direction The direction to move the camera object,
+     */
     public void move(int direction) {
         Vector3 directionVec;
         //direction = 0 -> stop

@@ -4,6 +4,7 @@ import me.overfjord.programwindow.graphicsPanel.GraphicsPanel;
 import me.overfjord.programwindow.physicsToolkit.PhysicsStepper;
 import me.overfjord.programwindow.physicsToolkit.Space;
 
+import javax.sound.sampled.*;
 import javax.swing.JFrame;
 import java.awt.AWTException;
 import java.awt.Dimension;
@@ -17,6 +18,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * This class is the program window and handles the inputs
@@ -29,6 +32,22 @@ public class MainProgramWindow extends JFrame {
      * med detta kan användaren välja att starta simuleringen med 'R'
      */
     private final Runnable startSim;
+
+    //TODO: extract class to handle music and sound
+    /**
+     * Plays the background music
+     */
+    private Clip clip;
+
+    /**
+     * Feeds the Clip the input file
+     */
+    private AudioInputStream audioIn;
+
+    /**
+     * A single instance, so not multiple instances of the same file fills up the memory
+     */
+    private final File musicFile = new File("src/main/resources/soundtrack.wav");
 
     /**Used to do actions like move the cursor to the center of the screen
      */
@@ -56,7 +75,7 @@ public class MainProgramWindow extends JFrame {
         setSize(width,height);
 
         //Creating physicsThread
-        PhysicsStepper ps = new PhysicsStepper(PhysicsStepper.GRAVITY);
+        PhysicsStepper ps = new PhysicsStepper(PhysicsStepper.GRAVITY,PhysicsStepper.DARK_ENERGY);
         Thread physicsThread = new Thread(ps,"PhysicsStepperThread");
         Space space = new Space(ps);
         ps.setSpace(space);
@@ -75,7 +94,6 @@ public class MainProgramWindow extends JFrame {
         addMouseMotionListener(new MouseInputHandler());
         addKeyListener(new KeyboardInputHandler());
         addWindowStateListener(new WindowStateHandler());
-        //FileReader    (lägg till Let It Happen Musik)
 
         graphicsThread.start();     //TYDLIGEN VÄLDIGT VIKTIGT ATT THREADEN STARTAS I SLUTET AV KONSTRUKTÖREN! UPPTÄCKT GENOM TRIAL AND ERROR
         //JAG JÄMFÖRDE MED JPong OCH ENDA SKILLNADEN VAR PLACERINGEN AV DETTA METODANROPET
@@ -105,6 +123,32 @@ public class MainProgramWindow extends JFrame {
             //start the simulation if it isn't already running
             if (e.getKeyCode() == KeyEvent.VK_R && !gp.space.physics.simulating) {
                 startSim.run();
+                return;
+            }
+
+            //TODO fix the memory leak from continually starting and stopping the music
+            //Background music
+            if (e.getKeyCode() == KeyEvent.VK_M) {
+                if (clip != null) {
+                    try {
+                        audioIn.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    clip.stop();
+                    //A little dirty to set it to null to mean the music is turned off
+                    clip = null;
+                    return;
+                }
+                try {
+                    audioIn = AudioSystem.getAudioInputStream(musicFile.toURI().toURL());
+
+                    clip = AudioSystem.getClip();
+                    clip.open(audioIn);
+                    clip.loop(Clip.LOOP_CONTINUOUSLY);
+                } catch (LineUnavailableException | UnsupportedAudioFileException | IOException ex) {
+                    ex.printStackTrace();
+                }
                 return;
             }
 

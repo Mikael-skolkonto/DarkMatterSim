@@ -48,7 +48,7 @@ public class PhysicsStepper implements Runnable {
                     if (deltaVelocities[i] == null) {
                         deltaVelocities[i] = (addedVelocities[i]);
                     } else {
-                        deltaVelocities[i].add(addedVelocities[i]);    //for now this is incompatible with having multiple stepRules
+                        deltaVelocities[i].add(addedVelocities[i]);
                     }
                 }
             }
