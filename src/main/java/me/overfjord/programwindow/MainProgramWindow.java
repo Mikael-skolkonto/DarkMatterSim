@@ -11,7 +11,7 @@ import java.awt.event.*;
 /**
  * This class is the program window and handles the inputs
  */
-public class MainProgramWindow extends JFrame implements Runnable {
+public class MainProgramWindow extends JFrame {
 
     private final GraphicsPanel gp;
 
@@ -31,11 +31,9 @@ public class MainProgramWindow extends JFrame implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-
-    }
-
+    /**
+     * Constructs an instance with instances of {@code GraphicsPanel} and {@code GraphicsPanel}
+     */
     public MainProgramWindow() {
         Image windowIcon = Toolkit.getDefaultToolkit().getImage("src/main/resources/windowIcon.jpg");
         setIconImage(windowIcon);
@@ -55,7 +53,7 @@ public class MainProgramWindow extends JFrame implements Runnable {
         this.startSim = physicsThread::start;
 
         //Add panel to display simulation
-        this.gp = new GraphicsPanel(space,getSize(),165);
+        this.gp = new GraphicsPanel(space,getSize(),60);
         getContentPane().add(gp);
         Thread graphicsThread = new Thread(gp, "GraphicsThread");
 
@@ -123,6 +121,7 @@ public class MainProgramWindow extends JFrame implements Runnable {
             }
         }
     }
+
 
     //handles "looking around"
     class MouseInputHandler extends MouseMotionAdapter {

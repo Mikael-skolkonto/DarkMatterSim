@@ -55,6 +55,7 @@ public class PhysicsStepper implements Runnable {
 
             //add velocities to particles
             for (int i = 0; i < deltaVelocities.length; i++) {
+                //assert(deltaVelocities[i].magnitude()<10000) : "too high velocity";
                 space.velocities.get(i).add(deltaVelocities[i]);
             }
 

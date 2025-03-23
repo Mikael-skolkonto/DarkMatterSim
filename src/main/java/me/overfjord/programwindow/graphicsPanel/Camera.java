@@ -34,8 +34,6 @@ public class Camera {
 
     private Vector3 movingVec = new Vector3();
 
-    private boolean isMoving = false;
-
     /**Field of view of the camera in radians.
      */
     private double FOV;
