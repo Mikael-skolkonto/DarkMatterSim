@@ -6,7 +6,7 @@ import mikera.matrixx.Matrixx;
 import mikera.matrixx.Matrix33;
 import mikera.vectorz.Vector3;
 
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 //TODO: add "static-state" for the camera to follow a particle
