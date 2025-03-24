@@ -8,6 +8,7 @@ public class Gravity extends StepRule {
 
     @Override
     public Vector3[] step(Space space, long dt) {
+
         Vector3[] appliedVelocities = new Vector3[space.universeActors.size()];
         //initialize variables
         for (int i = 0; i < appliedVelocities.length; i++) {
@@ -16,6 +17,8 @@ public class Gravity extends StepRule {
         double dt_times_G = dt * GRAVITATIONAL_CONSTANT;
 
         //TODO: Find what factors drop out when substituting units. Important formulas: dv = dt * G(M/r^2) and F = G(M*m/r^2)
+        //I measured this approach to be slightly faster (normalising a vector once and applying the the opposite force at the same time)
+        //than normalising every vector twice (with 100 point-masses), about 2 micros faster
         for (int i = 0; i < appliedVelocities.length; i++) {
 
             //j is initialized as value of i + 1

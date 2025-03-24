@@ -37,17 +37,17 @@ public class MainProgramWindow extends JFrame {
     /**
      * Plays the background music
      */
-    private Clip clip;
+    //private Clip clip;
 
     /**
      * Feeds the Clip the input file
      */
-    private AudioInputStream audioIn;
+    //private AudioInputStream audioIn;
 
     /**
      * A single instance, so not multiple instances of the same file fills up the memory
      */
-    private final File musicFile = new File("src/main/resources/soundtrack.wav");
+    //private final File musicFile = new File("src/main/resources/soundtrack.wav");
 
     /**Used to do actions like move the cursor to the center of the screen
      */
@@ -128,7 +128,7 @@ public class MainProgramWindow extends JFrame {
 
             //TODO fix the memory leak from continually starting and stopping the music
             //Background music
-            if (e.getKeyCode() == KeyEvent.VK_M) {
+            /*if (e.getKeyCode() == KeyEvent.VK_M) {
                 if (clip != null) {
                     try {
                         audioIn.close();
@@ -150,7 +150,7 @@ public class MainProgramWindow extends JFrame {
                     ex.printStackTrace();
                 }
                 return;
-            }
+            }*/
 
             //movement-keys
             switch (e.getKeyCode()) {
