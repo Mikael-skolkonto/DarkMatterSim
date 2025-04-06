@@ -19,7 +19,7 @@ public class Space {
         this.physics = ps;
 
         //1 på 6 partiklar är vanlig materia, efterom 4% av univerum är materia och 20% mörk materia
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 600; i++) {
             if (i % 6 == 0) {
                 this.add(PointMass.MATTER, new Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5),new Vector3());
             } else {

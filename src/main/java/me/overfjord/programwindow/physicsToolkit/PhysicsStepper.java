@@ -15,6 +15,17 @@ public class PhysicsStepper implements Runnable {
     private final ArrayList<StepRule> stepRules = new ArrayList<>();
 
     public PhysicsStepper(byte... stepRules) {
+        this.setStepRules(stepRules);
+    }
+
+    public void setStepRules(byte... stepRules) {
+        if (this.simulating) {
+            throw new RuntimeException(new IllegalThreadStateException());
+        }
+        if (this.stepRules.size() != 0) {
+            this.stepRules.clear();
+        }
+
         for (byte stepRule : stepRules) {
             switch (stepRule) {
                 case GRAVITY -> this.stepRules.add(new Gravity());
@@ -36,7 +47,7 @@ public class PhysicsStepper implements Runnable {
 
         //The continuous loop
         while (simulating) {
-            Vector3[] deltaVelocities = new Vector3[space.universeActors.size()];
+            Vector3[] deltaVelocities = new Vector3[space.velocities.size()];
 
             //Calculate for each stepRule
             for (StepRule sr : stepRules) {
@@ -46,7 +57,7 @@ public class PhysicsStepper implements Runnable {
                 for (int i = 0; i < addedVelocities.length; i++) {
                     //Add dv or assign initial value
                     if (deltaVelocities[i] == null) {
-                        deltaVelocities[i] = (addedVelocities[i]);
+                        deltaVelocities[i] = addedVelocities[i];
                     } else {
                         deltaVelocities[i].add(addedVelocities[i]);
                     }
@@ -56,6 +67,7 @@ public class PhysicsStepper implements Runnable {
             //add velocities to particles
             for (int i = 0; i < deltaVelocities.length; i++) {
                 //assert(deltaVelocities[i].magnitude()<10000) : "too high velocity";
+                // TODO: 2025-04-06 FIND OUT WHY DELTAVELOCITIES[i] MIGHT BE NULL
                 space.velocities.get(i).add(deltaVelocities[i]);
             }
 

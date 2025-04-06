@@ -5,19 +5,11 @@ import me.overfjord.programwindow.physicsToolkit.PhysicsStepper;
 import me.overfjord.programwindow.physicsToolkit.Space;
 
 import javax.sound.sampled.*;
-import javax.swing.JFrame;
-import java.awt.AWTException;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Robot;
-import java.awt.SystemColor;
-import java.awt.Toolkit;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import javax.swing.*;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.SeparatorUI;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -28,6 +20,10 @@ public class MainProgramWindow extends JFrame {
 
     private final GraphicsPanel gp;
 
+    /**Starts the simulation GUI
+     */
+    private final Runnable startVisuals;
+
     /**På skoldatorn stötte jag på problemet att punkterna kunde försvinna innan jag hittade dem,
      * med detta kan användaren välja att starta simuleringen med 'R'
      */
@@ -37,19 +33,20 @@ public class MainProgramWindow extends JFrame {
     /**
      * Plays the background music
      */
-    //private Clip clip;
+    private Clip clip;
 
     /**
      * Feeds the Clip the input file
      */
-    //private AudioInputStream audioIn;
+    private AudioInputStream audioIn;
 
     /**
      * A single instance, so not multiple instances of the same file fills up the memory
      */
-    //private final File musicFile = new File("src/main/resources/soundtrack.wav");
+    private final File musicFile = new File("src/main/resources/soundtrack.wav");
 
-    /**Used to do actions like move the cursor to the center of the screen
+    /**Used to do actions like move the cursor to the center of the screen.
+     * Sudo is the common name for commands that mimic user actions.
      */
     private final Robot sudo;
     {
@@ -83,31 +80,30 @@ public class MainProgramWindow extends JFrame {
 
         //Add panel to display simulation
         this.gp = new GraphicsPanel(space,getSize(),60);
-        getContentPane().add(gp);
         Thread graphicsThread = new Thread(gp, "GraphicsThread");
+
+        this.startVisuals = () -> {
+            getContentPane().remove(0);
+
+            getContentPane().add(gp);
+            addMouseMotionListener(new MouseInputHandler());
+            addKeyListener(new KeyboardInputHandler());
+            addWindowStateListener(new WindowStateHandler());
+            graphicsThread.start();
+        };
 
         setLocationRelativeTo(null);
         getContentPane().setBackground(SystemColor.BLACK);
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        addMouseMotionListener(new MouseInputHandler());
-        addKeyListener(new KeyboardInputHandler());
-        addWindowStateListener(new WindowStateHandler());
-
-        graphicsThread.start();     //TYDLIGEN VÄLDIGT VIKTIGT ATT THREADEN STARTAS I SLUTET AV KONSTRUKTÖREN! UPPTÄCKT GENOM TRIAL AND ERROR
-        //JAG JÄMFÖRDE MED JPong OCH ENDA SKILLNADEN VAR PLACERINGEN AV DETTA METODANROPET
-
+        getContentPane().add(new SettingsPanel(gp, this.startVisuals));
     }
 
     private void switchFullscreen() {
-        if (getExtendedState() == MAXIMIZED_BOTH) {
-            setExtendedState(NORMAL);
-            //setUndecorated(false);
-        } else {
-            setExtendedState(MAXIMIZED_BOTH);
-            //setUndecorated(true);     Funkar ej för tillfället
-        }
+        //setUndecorated(false);    Detta ska sätta fönstret som "borderless fullscreen"
+        //setUndecorated(true);     men det funkar ej för tillfället, därför förenklades metodens if-sats
+        setExtendedState(getExtendedState() == MAXIMIZED_BOTH ? NORMAL : MAXIMIZED_BOTH);
     }
 
     class KeyboardInputHandler extends KeyAdapter {
@@ -128,7 +124,7 @@ public class MainProgramWindow extends JFrame {
 
             //TODO fix the memory leak from continually starting and stopping the music
             //Background music
-            /*if (e.getKeyCode() == KeyEvent.VK_M) {
+            if (e.getKeyCode() == KeyEvent.VK_M) {
                 if (clip != null) {
                     try {
                         audioIn.close();
@@ -150,7 +146,7 @@ public class MainProgramWindow extends JFrame {
                     ex.printStackTrace();
                 }
                 return;
-            }*/
+            }
 
             //movement-keys
             switch (e.getKeyCode()) {
@@ -186,10 +182,90 @@ public class MainProgramWindow extends JFrame {
         }
     }
 
+    /**Handles setting the screen size of the Camera instance and
+     */
     class WindowStateHandler extends WindowAdapter {
         @Override
         public void windowStateChanged(WindowEvent e) {
             gp.setPanelSize(e.getWindow().getSize());
+        }
+    }
+}
+
+class SettingsPanel extends JPanel {
+
+    final GraphicsPanel gp;
+    final Runnable startVisuals;
+    final JCheckBox stepRuleGravityCheckbox;
+    final JCheckBox stepRuleDarkEnergyCheckbox;
+    final JSpinner FPSCapChooser;
+    final JSpinner FOVChooser;
+
+    public SettingsPanel(GraphicsPanel gp, Runnable startVisuals) {
+        this.gp = gp;
+        this.startVisuals = startVisuals;
+
+        JLabel fpsLabel = new JLabel("FPS cap:");
+        fpsLabel.setBackground(SystemColor.WHITE);
+        fpsLabel.setOpaque(true);
+        add(fpsLabel);
+        FPSCapChooser = new JSpinner();
+        FPSCapChooser.setValue(60);
+        add(FPSCapChooser).setVisible(true);
+
+        JLabel fovLabel = new JLabel("Field of View (degrees):");
+        fovLabel.setBackground(SystemColor.WHITE);
+        fovLabel.setOpaque(true);
+        add(fovLabel);
+        FOVChooser = new JSpinner();
+        FOVChooser.setValue(90);
+        add(FOVChooser).setVisible(true);
+
+        stepRuleGravityCheckbox = new JCheckBox("Gravity",true);
+        stepRuleDarkEnergyCheckbox = new JCheckBox("Dark Energy",true);
+        add(stepRuleGravityCheckbox).setVisible(true);
+        add(stepRuleDarkEnergyCheckbox).setVisible(true);
+
+        JSeparator menuSeparator = new JSeparator(JSeparator.HORIZONTAL);
+        menuSeparator.setSize(35,menuSeparator.getHeight());
+        add(menuSeparator).setVisible(true);
+
+        JButton startButton = new JButton("Start simulation");
+        //startButton.setLocation(400,350);
+        startButton.setSize(200,30);
+        add(startButton).setVisible(true);
+        startButton.addActionListener(new StartButtonActionListener());
+
+        this.setOpaque(false);
+    }
+
+    private class StartButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //set to the selected FPS cap (default is 60)
+            int fps = (int)FPSCapChooser.getValue();
+            if (!(fps == 60) && fps > 0) {
+                gp.setFPSCap((int)FPSCapChooser.getValue());
+            }
+
+            //set to the selected FOV (default is 90 degrees)
+            int fov = (int)FOVChooser.getValue();
+            if (!(fov == 90) && fov > 0 && fov < 180) {
+                gp.setFOV(Math.toRadians(fov));
+            }
+
+            //set to the selected step-rules (default is both being selected)
+            if (!(stepRuleGravityCheckbox.isSelected() && stepRuleDarkEnergyCheckbox.isSelected())) {
+                if (stepRuleGravityCheckbox.isSelected()) {
+                    gp.space.physics.setStepRules(PhysicsStepper.GRAVITY);
+                } else if (stepRuleDarkEnergyCheckbox.isSelected()) {
+                    gp.space.physics.setStepRules(PhysicsStepper.DARK_ENERGY);
+                }
+            }
+
+            //run the simulation-window
+            startVisuals.run();
         }
     }
 }

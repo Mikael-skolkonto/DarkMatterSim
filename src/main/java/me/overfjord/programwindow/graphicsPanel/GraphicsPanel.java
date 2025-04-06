@@ -4,12 +4,7 @@ import me.overfjord.programwindow.physicsToolkit.Space;
 import mikera.vectorz.Vector3;
 
 import javax.swing.JPanel;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.SystemColor;
+import java.awt.*;
 
 public class GraphicsPanel extends JPanel implements Runnable {
 
@@ -23,11 +18,11 @@ public class GraphicsPanel extends JPanel implements Runnable {
 
     /**Used by other classes to pause the frame-refreshing
      */
-    public boolean running = true;
+    public boolean running = false;
 
     /**Minimum ms delay between each frame.
      */
-    private final int FPS_CAP;
+    private int FPS_CAP;
 
     private Graphics2D g2d;
 
@@ -41,16 +36,36 @@ public class GraphicsPanel extends JPanel implements Runnable {
         this.space = space;
         this.setPanelSize(size);
         this.camera = new Camera(this);
-        this.FPS_CAP = 1000 / fpsCap;
+        setFPSCap(fpsCap);
         this.g2d = (Graphics2D) getGraphics();
 
         setOpaque(false);
+    }
 
-        //Creates invisible cursor and sets the cursor to it
-        setCursor(getToolkit().createCustomCursor(
-                new java.awt.image.BufferedImage(1,1,java.awt.image.BufferedImage.TYPE_INT_ARGB),
-                new Point(),
-                null));
+    /**
+     * Sets the cap of redraws per second
+     * @param fpsCap the maximum allowed frames per second
+     */
+    public void setFPSCap(int fpsCap) {
+        if (this.running) {
+            throw new RuntimeException(new IllegalThreadStateException());
+        }
+        this.FPS_CAP = 1000 / fpsCap;
+    }
+
+    /**
+     * Sets the Field Of View of the {@code Camera} object
+     * @param FOV a double value between {@code Math.PI} and {@code 0}
+     */
+    public void setFOV(double FOV) {
+        if (this.running) {
+            throw new RuntimeException(new IllegalThreadStateException());
+        }
+        if (FOV < 0.0 || FOV > Math.PI) {
+            throw new IllegalArgumentException(FOV + " isn't in the span between 0 and PI");
+        }
+
+        camera.setFieldOfView(FOV);
     }
 
     /**
@@ -80,6 +95,13 @@ public class GraphicsPanel extends JPanel implements Runnable {
      */
     @Override
     public void run() {
+        running = true;
+        //Creates invisible cursor and sets the cursor to it
+        setCursor(getToolkit().createCustomCursor(
+                new java.awt.image.BufferedImage(1,1,java.awt.image.BufferedImage.TYPE_INT_ARGB),
+                new Point(),
+                null));
+
         try {
             while (running) {
                 this.paint(this.getGraphics());
@@ -88,6 +110,7 @@ public class GraphicsPanel extends JPanel implements Runnable {
         } catch (InterruptedException interruptException) {
             interruptException.printStackTrace();
         }
+        setCursor(Cursor.getDefaultCursor());
     }
 
     /**Interfaces with the camera that projects space onto the screen.
