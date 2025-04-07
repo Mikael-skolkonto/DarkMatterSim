@@ -122,6 +122,13 @@ public class MainProgramWindow extends JFrame {
                 return;
             }
 
+            //stop the simulation and return the results
+            if (e.getKeyCode() == KeyEvent.VK_ENTER && gp.space.physics.simulating) {
+                gp.running = false;
+                getContentPane().remove(0);
+                getContentPane().add(new ResultsPanel(gp.space));
+            }
+
             //TODO fix the memory leak from continually starting and stopping the music
             //Background music
             if (e.getKeyCode() == KeyEvent.VK_M) {
@@ -211,7 +218,7 @@ class SettingsPanel extends JPanel {
         add(fpsLabel);
         FPSCapChooser = new JSpinner();
         FPSCapChooser.setValue(60);
-        add(FPSCapChooser).setVisible(true);
+        add(FPSCapChooser);
 
         JLabel fovLabel = new JLabel("Field of View (degrees):");
         fovLabel.setBackground(SystemColor.WHITE);
@@ -219,21 +226,21 @@ class SettingsPanel extends JPanel {
         add(fovLabel);
         FOVChooser = new JSpinner();
         FOVChooser.setValue(90);
-        add(FOVChooser).setVisible(true);
+        add(FOVChooser);
 
         stepRuleGravityCheckbox = new JCheckBox("Gravity",true);
         stepRuleDarkEnergyCheckbox = new JCheckBox("Dark Energy",true);
         add(stepRuleGravityCheckbox).setVisible(true);
-        add(stepRuleDarkEnergyCheckbox).setVisible(true);
+        add(stepRuleDarkEnergyCheckbox);
 
         JSeparator menuSeparator = new JSeparator(JSeparator.HORIZONTAL);
         menuSeparator.setSize(35,menuSeparator.getHeight());
-        add(menuSeparator).setVisible(true);
+        add(menuSeparator);
 
         JButton startButton = new JButton("Start simulation");
         //startButton.setLocation(400,350);
         startButton.setSize(200,30);
-        add(startButton).setVisible(true);
+        add(startButton);
         startButton.addActionListener(new StartButtonActionListener());
 
         this.setOpaque(false);
@@ -268,4 +275,21 @@ class SettingsPanel extends JPanel {
             startVisuals.run();
         }
     }
+}
+
+class ResultsPanel extends JPanel {
+
+    /**
+     * Takes the results recorded by the physics-stepper and displays them
+     * @param space The
+     */
+    public ResultsPanel(Space space) {
+        JLabel resultsLabel = new JLabel("FPS cap:");
+        resultsLabel.setBackground(SystemColor.WHITE);
+        resultsLabel.setOpaque(true);
+        add(resultsLabel);
+
+        this.setOpaque(false);
+    }
+
 }

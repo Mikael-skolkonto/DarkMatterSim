@@ -3,6 +3,7 @@ package me.overfjord.programwindow.physicsToolkit;
 import mikera.vectorz.Vector3;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 public class PhysicsStepper implements Runnable {
 
@@ -45,6 +46,8 @@ public class PhysicsStepper implements Runnable {
         this.simulating = true;
         long timestep_ns = 5_000_000;   //5 ms
 
+        DataCollector dataCollector = new DataCollector();
+
         //The continuous loop
         while (simulating) {
             Vector3[] deltaVelocities = new Vector3[space.velocities.size()];
@@ -67,7 +70,7 @@ public class PhysicsStepper implements Runnable {
             //add velocities to particles
             for (int i = 0; i < deltaVelocities.length; i++) {
                 //assert(deltaVelocities[i].magnitude()<10000) : "too high velocity";
-                // TODO: 2025-04-06 FIND OUT WHY DELTAVELOCITIES[i] MIGHT BE NULL
+                // TODO: 2025-04-06 FIND OUT WHY DELTAVELOCITIES[i] MIGHT BE NULL WHEN ONLY STEP RULE "DARK_ENERGY" IS ACTIVE
                 space.velocities.get(i).add(deltaVelocities[i]);
             }
 
@@ -75,6 +78,53 @@ public class PhysicsStepper implements Runnable {
             for (int i = 0, points = space.pointMassCoordinates.size(); i < points; i++) {
                 space.pointMassCoordinates.get(i).add(deltaVelocities[i]);
             }
+            dataCollector.collectData();
         }
+    }
+
+    class DataCollector {
+
+        /**
+         * Since collecting data every time step would take up too much data,
+         * this constant determines how many calls of collectData() that will be ignored.
+         */
+        public static final int INTERVAL = 100;
+        private int callCounter = 0;
+
+        //proportionality constant for mass: 10^-22 kg/unit
+        //proportionality constant for time: 10^-9 sec/unit
+        //proportionality constant for distance: 10^18 m/unit
+        private static final double DENSITY_PROPORTIONALITY_FACTOR = Math.pow(10,-76);
+        private static final double EXPANSION_VELOCITY_PROPORTIONALITY_FACTOR = Math.pow(10,27);
+
+        private final double mass = (double)space.universeActors.stream().filter(Predicate.isEqual(PointMass.MATTER)).count() *
+                PointMass.MATTER.mass +
+                (double)space.universeActors.stream().filter(Predicate.isEqual(PointMass.MATTER)).count() *
+                        PointMass.MATTER.mass;
+        private ArrayList<Double> density = new ArrayList<>(64);
+
+        private ArrayList<Double> expansionVelocity = new ArrayList<>(64);
+
+        public DataCollector() {
+
+        }
+
+        public void collectData() {
+            if (callCounter % INTERVAL != 0) {
+                callCounter++;
+                return;
+            }
+
+            density.add(collectDensity());
+
+            callCounter++;
+        }
+
+        private double collectDensity() {
+            double distance = space.pointMassCoordinates.stream().mapToDouble(e -> Math.sqrt(e.x*e.x+e.y*e.y+e.z*e.z)).max().getAsDouble();
+            return DENSITY_PROPORTIONALITY_FACTOR*3*mass / (4*Math.PI*distance*distance*distance);
+        }
+
+        // TODO: 2025-04-07 Implement method to return the results to the user
     }
 }

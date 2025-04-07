@@ -11,3 +11,4 @@ public class DarkMatterSimulatorMain {
         MainProgramWindow mainFrame = new MainProgramWindow();
     }
 }
+//Om kod kunde lukta, så tror jag att den här hade varit förrödande.
