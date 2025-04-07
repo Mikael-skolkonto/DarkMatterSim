@@ -3,6 +3,7 @@ package me.overfjord.programwindow.physicsToolkit;
 import mikera.vectorz.Vector3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 public class PhysicsStepper implements Runnable {
@@ -48,8 +49,10 @@ public class PhysicsStepper implements Runnable {
 
         DataCollector dataCollector = new DataCollector();
 
+        long startTime = System.nanoTime();
         //The continuous loop
         while (simulating) {
+
             Vector3[] deltaVelocities = new Vector3[space.velocities.size()];
 
             //Calculate for each stepRule
@@ -79,6 +82,8 @@ public class PhysicsStepper implements Runnable {
                 space.pointMassCoordinates.get(i).add(deltaVelocities[i]);
             }
             dataCollector.collectData();
+            System.out.println(System.nanoTime() - startTime);
+            startTime = System.nanoTime();
         }
     }
 
@@ -88,7 +93,7 @@ public class PhysicsStepper implements Runnable {
          * Since collecting data every time step would take up too much data,
          * this constant determines how many calls of collectData() that will be ignored.
          */
-        public static final int INTERVAL = 100;
+        public static final int INTERVAL = 500;
         private int callCounter = 0;
 
         //proportionality constant for mass: 10^-22 kg/unit
@@ -116,15 +121,29 @@ public class PhysicsStepper implements Runnable {
             }
 
             density.add(collectDensity());
+            expansionVelocity.add(collectExpansionRate());
 
             callCounter++;
         }
 
+        private double collectExpansionRate() {
+            java.util.Iterator<Vector3> vector3Iterator = space.velocities.stream().iterator();
+            return space.pointMassCoordinates.stream().sequential()
+                    .mapToDouble(e -> vector3Iterator.next().dotProduct(e.toNormal()))
+                    .average().getAsDouble();
+            //With the interpretation that "expansion" is the average speed outward
+        }
+
         private double collectDensity() {
-            double distance = space.pointMassCoordinates.stream().mapToDouble(e -> Math.sqrt(e.x*e.x+e.y*e.y+e.z*e.z)).max().getAsDouble();
+            double distance = space.pointMassCoordinates.parallelStream().mapToDouble(e -> Math.sqrt(e.x*e.x+e.y*e.y+e.z*e.z)).max().getAsDouble();
             return DENSITY_PROPORTIONALITY_FACTOR*3*mass / (4*Math.PI*distance*distance*distance);
         }
 
         // TODO: 2025-04-07 Implement method to return the results to the user
+        public String summarize(long dt) {
+            final long timeStep = INTERVAL * dt;
+            return timeStep + " ns timesteps \n" + "Density: " + Arrays.toString(density.toArray(Double[]::new)) + "\nExpansion: "
+                    + Arrays.toString(expansionVelocity.toArray(Double[]::new));
+        }
     }
 }
