@@ -6,8 +6,6 @@ import me.overfjord.programwindow.physicsToolkit.Space;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
-import javax.swing.plaf.ComponentUI;
-import javax.swing.plaf.SeparatorUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -97,7 +95,7 @@ public class MainProgramWindow extends JFrame {
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        getContentPane().add(new SettingsPanel(gp, this.startVisuals));
+        getContentPane().add(new MainMenuPanel(gp, this.startVisuals));
     }
 
     private void switchFullscreen() {
@@ -106,6 +104,9 @@ public class MainProgramWindow extends JFrame {
         setExtendedState(getExtendedState() == MAXIMIZED_BOTH ? NORMAL : MAXIMIZED_BOTH);
     }
 
+    /**
+     * Property of the MainProgramWindow-class
+     */
     class KeyboardInputHandler extends KeyAdapter {
 
         public void keyPressed(KeyEvent e) {
@@ -120,13 +121,6 @@ public class MainProgramWindow extends JFrame {
             if (e.getKeyCode() == KeyEvent.VK_R && !gp.space.physics.simulating) {
                 startSim.run();
                 return;
-            }
-
-            //stop the simulation and return the results
-            if (e.getKeyCode() == KeyEvent.VK_ENTER && gp.space.physics.simulating) {
-                gp.running = false;
-                getContentPane().remove(0);
-                getContentPane().add(new ResultsPanel(gp.space));
             }
 
             //TODO fix the memory leak from continually starting and stopping the music
@@ -172,6 +166,19 @@ public class MainProgramWindow extends JFrame {
                 System.exit(0);
             }
 
+            //stop the simulation and return the results
+            if (e.getKeyCode() == KeyEvent.VK_ENTER && gp.space.physics.simulating) {
+                gp.space.physics.simulating = false;
+                gp.running = false;
+                removeMouseMotionListener(getMouseMotionListeners()[0]);
+                removeWindowStateListener(getWindowStateListeners()[0]);
+                removeKeyListener(getKeyListeners()[0]);
+                getContentPane().remove(0);
+
+                getContentPane().add(new ResultsPanel(gp.space));
+                return;
+            }
+
             //stopping movement when a movement-key has been unpressed
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_W, KeyEvent.VK_A, KeyEvent.VK_S, KeyEvent.VK_D -> gp.move(0);
@@ -181,6 +188,9 @@ public class MainProgramWindow extends JFrame {
 
 
     //handles "looking around"
+    /**
+     * Property of the MainProgramWindow-class
+     */
     class MouseInputHandler extends MouseMotionAdapter {
 
         public void mouseMoved(MouseEvent e) {
@@ -189,7 +199,9 @@ public class MainProgramWindow extends JFrame {
         }
     }
 
-    /**Handles setting the screen size of the Camera instance and
+    /**
+     * Property of the MainProgramWindow-class
+     * Handles setting the screen size of the Camera instance and
      */
     class WindowStateHandler extends WindowAdapter {
         @Override
@@ -199,7 +211,9 @@ public class MainProgramWindow extends JFrame {
     }
 }
 
-class SettingsPanel extends JPanel {
+/*-------Start Of Separate JPanel Classes--------*/
+
+class MainMenuPanel extends JPanel {
 
     final GraphicsPanel gp;
     final Runnable startVisuals;
@@ -208,7 +222,7 @@ class SettingsPanel extends JPanel {
     final JSpinner FPSCapChooser;
     final JSpinner FOVChooser;
 
-    public SettingsPanel(GraphicsPanel gp, Runnable startVisuals) {
+    public MainMenuPanel(GraphicsPanel gp, Runnable startVisuals) {
         this.gp = gp;
         this.startVisuals = startVisuals;
 
@@ -280,14 +294,22 @@ class SettingsPanel extends JPanel {
 class ResultsPanel extends JPanel {
 
     /**
-     * Takes the results recorded by the physics-stepper and displays them
-     * @param space The
+     * Takes the results recorded by the physics-stepper and displays them.
+     * @param space The space which was experimented on.
      */
     public ResultsPanel(Space space) {
-        JLabel resultsLabel = new JLabel("FPS cap:");
-        resultsLabel.setBackground(SystemColor.WHITE);
-        resultsLabel.setOpaque(true);
-        add(resultsLabel);
+        setLayout(new FlowLayout(FlowLayout.CENTER,0,5));
+
+        JLabel title = new JLabel("Results:");
+        title.setBackground(SystemColor.WHITE);
+        title.setOpaque(true);
+        add(title);
+
+        JTextArea results = new JTextArea(space.physics.getSummary());
+        results.setEditable(true);
+        results.setRows(3);
+        JScrollPane scrollbarArea = new JScrollPane(results,JScrollPane.VERTICAL_SCROLLBAR_NEVER,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        add(scrollbarArea);
 
         this.setOpaque(false);
     }

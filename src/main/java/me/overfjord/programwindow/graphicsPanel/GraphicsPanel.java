@@ -74,7 +74,7 @@ public class GraphicsPanel extends JPanel implements Runnable {
      */
     public void paint(Graphics g) {
         g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setBackground(SystemColor.BLACK);
         g2d.clearRect(0,0,getWidth(),getHeight());
 

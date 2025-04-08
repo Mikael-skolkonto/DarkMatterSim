@@ -14,6 +14,8 @@ public class PhysicsStepper implements Runnable {
 
     private Space space;
 
+    public DataCollector dataCollector;
+
     private final ArrayList<StepRule> stepRules = new ArrayList<>();
 
     public PhysicsStepper(byte... stepRules) {
@@ -40,6 +42,18 @@ public class PhysicsStepper implements Runnable {
 
     public void setSpace(Space space) {
         this.space = space;
+         dataCollector = new DataCollector(2000);
+    }
+
+    public String getSummary() {
+        if (simulating)
+            return "Stop simulation first!";
+
+        while (this.dataCollector.summary == null) {
+            Thread.onSpinWait();
+        }
+
+        return this.dataCollector.summary;
     }
 
     @Override
@@ -47,9 +61,6 @@ public class PhysicsStepper implements Runnable {
         this.simulating = true;
         long timestep_ns = 5_000_000;   //5 ms
 
-        DataCollector dataCollector = new DataCollector();
-
-        long startTime = System.nanoTime();
         //The continuous loop
         while (simulating) {
 
@@ -82,9 +93,9 @@ public class PhysicsStepper implements Runnable {
                 space.pointMassCoordinates.get(i).add(deltaVelocities[i]);
             }
             dataCollector.collectData();
-            System.out.println(System.nanoTime() - startTime);
-            startTime = System.nanoTime();
         }
+        /*---END OF RUNNING LOOP---*/
+        dataCollector.summarize(timestep_ns);
     }
 
     class DataCollector {
@@ -93,7 +104,7 @@ public class PhysicsStepper implements Runnable {
          * Since collecting data every time step would take up too much data,
          * this constant determines how many calls of collectData() that will be ignored.
          */
-        public static final int INTERVAL = 500;
+        public final int INTERVAL;
         private int callCounter = 0;
 
         //proportionality constant for mass: 10^-22 kg/unit
@@ -110,8 +121,10 @@ public class PhysicsStepper implements Runnable {
 
         private ArrayList<Double> expansionVelocity = new ArrayList<>(64);
 
-        public DataCollector() {
+        private String summary;
 
+        public DataCollector(int interval) {
+            this.INTERVAL = interval;
         }
 
         public void collectData() {
@@ -130,7 +143,7 @@ public class PhysicsStepper implements Runnable {
             java.util.Iterator<Vector3> vector3Iterator = space.velocities.stream().iterator();
             return space.pointMassCoordinates.stream().sequential()
                     .mapToDouble(e -> vector3Iterator.next().dotProduct(e.toNormal()))
-                    .average().getAsDouble();
+                    .average().getAsDouble() * EXPANSION_VELOCITY_PROPORTIONALITY_FACTOR;
             //With the interpretation that "expansion" is the average speed outward
         }
 
@@ -139,11 +152,10 @@ public class PhysicsStepper implements Runnable {
             return DENSITY_PROPORTIONALITY_FACTOR*3*mass / (4*Math.PI*distance*distance*distance);
         }
 
-        // TODO: 2025-04-07 Implement method to return the results to the user
-        public String summarize(long dt) {
+        private void summarize(long dt) {
             final long timeStep = INTERVAL * dt;
-            return timeStep + " ns timesteps \n" + "Density: " + Arrays.toString(density.toArray(Double[]::new)) + "\nExpansion: "
-                    + Arrays.toString(expansionVelocity.toArray(Double[]::new));
+            this.summary = timeStep + " ns timesteps \n" + "Density: " + Arrays.toString(density.toArray(Double[]::new)).replaceAll("E","*10^")
+            + "\nExpansion: " + Arrays.toString(expansionVelocity.toArray(Double[]::new)).replaceAll("E","*10^");
         }
     }
 }
